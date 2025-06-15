@@ -7,6 +7,14 @@ This module provides search tools that can be used by agents in the campaign opt
 # Import search tools
 from .search_tools import wikipedia_search, tavily_search, get_search_tools
 
+# Import vector search tools
+from .vector_search_tools import (
+    search_campaign_data, 
+    search_similar_campaigns, 
+    analyze_campaign_trends,
+    get_vector_search_tools
+)
+
 # Import Facebook and Instagram API tools
 from .facebook_campaign_api import get_facebook_campaign_tools
 from .instagram_campaign_api import get_instagram_campaign_tools
@@ -20,6 +28,9 @@ def get_all_tools():
     
     # Add search tools
     tools.extend(get_search_tools())
+    
+    # Add vector search tools
+    tools.extend(get_vector_search_tools())
     
     # Add Facebook campaign tools
     tools.extend(get_facebook_campaign_tools())
@@ -48,6 +59,11 @@ def get_campaign_management_tools():
 def get_analysis_tools():
     """Get analysis and reporting tools only."""
     tools = []
+    
+    # Add vector search tools for semantic analysis
+    tools.extend(get_vector_search_tools())
+    
+    # Add traditional analytics tools
     tools.extend(get_analytics_tools())
     tools.extend(get_content_management_tools())
     tools.extend(get_social_engagement_tools())
@@ -58,6 +74,10 @@ __all__ = [
     'wikipedia_search',
     'tavily_search',
     'get_search_tools',
+    'search_campaign_data',
+    'search_similar_campaigns', 
+    'analyze_campaign_trends',
+    'get_vector_search_tools',
     'get_facebook_campaign_tools',
     'get_instagram_campaign_tools',
     'get_analytics_tools',

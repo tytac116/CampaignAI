@@ -20,6 +20,7 @@ langgraph==0.0.20
 langchain-openai==0.0.2
 langchain-community==0.0.12
 langchain-tavily==0.1.0
+langchain-pinecone==0.1.0
 openai==1.6.1
 supabase==2.0.2
 mcp==0.3.0
