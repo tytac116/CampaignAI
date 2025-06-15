@@ -15,6 +15,15 @@ from .vector_search_tools import (
     get_vector_search_tools
 )
 
+# Import LLM tools
+from .llm_tools import (
+    analyze_campaign_performance,
+    generate_campaign_content,
+    optimize_campaign_strategy,
+    general_marketing_assistant,
+    get_llm_tools
+)
+
 # Import Facebook and Instagram API tools
 from .facebook_campaign_api import get_facebook_campaign_tools
 from .instagram_campaign_api import get_instagram_campaign_tools
@@ -31,6 +40,9 @@ def get_all_tools():
     
     # Add vector search tools
     tools.extend(get_vector_search_tools())
+    
+    # Add LLM tools
+    tools.extend(get_llm_tools())
     
     # Add Facebook campaign tools
     tools.extend(get_facebook_campaign_tools())
@@ -63,10 +75,25 @@ def get_analysis_tools():
     # Add vector search tools for semantic analysis
     tools.extend(get_vector_search_tools())
     
+    # Add LLM tools for advanced analysis
+    tools.extend(get_llm_tools())
+    
     # Add traditional analytics tools
     tools.extend(get_analytics_tools())
     tools.extend(get_content_management_tools())
     tools.extend(get_social_engagement_tools())
+    return tools
+
+def get_content_creation_tools():
+    """Get content creation and optimization tools."""
+    tools = []
+    
+    # Add LLM tools for content generation
+    tools.extend(get_llm_tools())
+    
+    # Add content management tools
+    tools.extend(get_content_management_tools())
+    
     return tools
 
 # Export individual tool functions for direct use
@@ -78,6 +105,11 @@ __all__ = [
     'search_similar_campaigns', 
     'analyze_campaign_trends',
     'get_vector_search_tools',
+    'analyze_campaign_performance',
+    'generate_campaign_content',
+    'optimize_campaign_strategy',
+    'general_marketing_assistant',
+    'get_llm_tools',
     'get_facebook_campaign_tools',
     'get_instagram_campaign_tools',
     'get_analytics_tools',
@@ -85,5 +117,6 @@ __all__ = [
     'get_social_engagement_tools',
     'get_all_tools',
     'get_campaign_management_tools',
-    'get_analysis_tools'
+    'get_analysis_tools',
+    'get_content_creation_tools'
 ] 
