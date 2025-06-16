@@ -1,0 +1,32 @@
+{
+  "demo_metadata": {
+    "timestamp": "2025-06-16T18:44:57.506956",
+    "total_scenarios": 1,
+    "langsmith_project": "CampaignAI-MultiAgent-Demo",
+    "langsmith_tracing": "true"
+  },
+  "results": [
+    {
+      "scenario": {
+        "name": "Analysis Use Case - Performance Review",
+        "type": "analysis",
+        "instruction": "Analyze the performance of all Facebook campaigns from the last 30 days. Focus on CTR, ROAS, and conversion rates. Identify top performers and underperformers.",
+        "expected_intent": "analysis",
+        "description": "Pure analysis workflow - should route through monitor \u2192 analyze \u2192 optimize \u2192 report"
+      },
+      "workflow_id": "workflow_f9b68d5a",
+      "execution_time": 36.981517,
+      "status": "completed",
+      "intent_detected": "analysis",
+      "intent_confidence": 0.7,
+      "intent_match": true,
+      "steps_completed": "completed",
+      "tool_calls_count": 12,
+      "database_changes": false,
+      "errors": [],
+      "final_output_length": 1190,
+      "validation_passed": true,
+      "langsmith_trace_url": "https://smith.langchain.com/projects/CampaignAI-MultiAgent-Demo"
+    }
+  ]
+}

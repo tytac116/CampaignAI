@@ -3,7 +3,7 @@ from datetime import datetime
 from enum import Enum
 from dataclasses import dataclass
 
-from langchain.schema import BaseMessage
+from langchain_core.messages import BaseMessage
 
 
 class WorkflowStatus(str, Enum):

@@ -18,7 +18,7 @@ from pydantic import BaseModel, Field
 from ...core.database import get_session
 from ...models.campaign import Campaign, CampaignStatus, PlatformType
 from ...models.campaign_metrics import CampaignMetrics
-from ...agents.graph import campaign_optimization_graph
+from ...agents.workflow_graph import create_campaign_graph
 from ...agents.coordinator import coordinator
 from ...agents.state import Priority, WorkflowStatus
 
@@ -271,7 +271,7 @@ async def optimize_campaign(
     
     # Start optimization workflow
     try:
-        result = await campaign_optimization_graph.run_workflow(
+        result = await create_campaign_graph().run_workflow(
             campaign_id=campaign_id,
             trigger_reason="api_optimization_request",
             priority=priority
@@ -312,7 +312,7 @@ async def optimize_campaigns_batch(
             continue
         
         try:
-            result = await campaign_optimization_graph.run_workflow(
+            result = await create_campaign_graph().run_workflow(
                 campaign_id=campaign_id,
                 trigger_reason="api_batch_optimization",
                 priority=request.priority
@@ -354,7 +354,7 @@ async def get_workflow_status(
     """Get workflow execution status"""
     
     try:
-        state = await campaign_optimization_graph.get_workflow_state(workflow_id)
+        state = await create_campaign_graph().get_workflow_state(workflow_id)
         
         if not state:
             raise HTTPException(status_code=404, detail=f"Workflow {workflow_id} not found")

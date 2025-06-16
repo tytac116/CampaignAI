@@ -24,6 +24,9 @@ class Settings(BaseSettings):
     # Pinecone Configuration
     pinecone_api_key: str = Field(..., env="PINECONE_API_KEY")
     
+    # Tavily Configuration
+    tavily_api_key: str = Field(..., env="TAVILY_API_KEY")
+    
     # Redis Configuration
     redis_url: str = Field("redis://localhost:6379", env="REDIS_URL")
     
@@ -58,3 +61,7 @@ class Settings(BaseSettings):
 
 # Global settings instance
 settings = Settings() 
+
+def get_settings() -> Settings:
+    """Get the global settings instance."""
+    return settings

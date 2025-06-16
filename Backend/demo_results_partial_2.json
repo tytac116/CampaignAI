@@ -1,0 +1,54 @@
+{
+  "demo_metadata": {
+    "timestamp": "2025-06-16T18:46:20.066209",
+    "total_scenarios": 2,
+    "langsmith_project": "CampaignAI-MultiAgent-Demo",
+    "langsmith_tracing": "true"
+  },
+  "results": [
+    {
+      "scenario": {
+        "name": "Analysis Use Case - Performance Review",
+        "type": "analysis",
+        "instruction": "Analyze the performance of all Facebook campaigns from the last 30 days. Focus on CTR, ROAS, and conversion rates. Identify top performers and underperformers.",
+        "expected_intent": "analysis",
+        "description": "Pure analysis workflow - should route through monitor \u2192 analyze \u2192 optimize \u2192 report"
+      },
+      "workflow_id": "workflow_f9b68d5a",
+      "execution_time": 36.981517,
+      "status": "completed",
+      "intent_detected": "analysis",
+      "intent_confidence": 0.7,
+      "intent_match": true,
+      "steps_completed": "completed",
+      "tool_calls_count": 12,
+      "database_changes": false,
+      "errors": [],
+      "final_output_length": 1190,
+      "validation_passed": true,
+      "langsmith_trace_url": "https://smith.langchain.com/projects/CampaignAI-MultiAgent-Demo"
+    },
+    {
+      "scenario": {
+        "name": "Action Use Case - Campaign Creation",
+        "type": "action",
+        "instruction": "Create a new Facebook campaign for promoting eco-friendly water bottles to millennials aged 25-35. Budget should be $50 daily, objective is conversions, and run for 2 weeks starting tomorrow.",
+        "expected_intent": "action",
+        "description": "Pure action workflow - should route through intent \u2192 execute actions \u2192 report"
+      },
+      "workflow_id": "workflow_121eb56a",
+      "execution_time": 79.555177,
+      "status": "completed",
+      "intent_detected": "action",
+      "intent_confidence": 0.7,
+      "intent_match": true,
+      "steps_completed": "completed",
+      "tool_calls_count": 36,
+      "database_changes": false,
+      "errors": [],
+      "final_output_length": 27,
+      "validation_passed": false,
+      "langsmith_trace_url": "https://smith.langchain.com/projects/CampaignAI-MultiAgent-Demo"
+    }
+  ]
+}

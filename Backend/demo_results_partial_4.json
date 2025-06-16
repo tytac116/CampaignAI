@@ -1,0 +1,98 @@
+{
+  "demo_metadata": {
+    "timestamp": "2025-06-16T18:49:14.666957",
+    "total_scenarios": 4,
+    "langsmith_project": "CampaignAI-MultiAgent-Demo",
+    "langsmith_tracing": "true"
+  },
+  "results": [
+    {
+      "scenario": {
+        "name": "Analysis Use Case - Performance Review",
+        "type": "analysis",
+        "instruction": "Analyze the performance of all Facebook campaigns from the last 30 days. Focus on CTR, ROAS, and conversion rates. Identify top performers and underperformers.",
+        "expected_intent": "analysis",
+        "description": "Pure analysis workflow - should route through monitor \u2192 analyze \u2192 optimize \u2192 report"
+      },
+      "workflow_id": "workflow_f9b68d5a",
+      "execution_time": 36.981517,
+      "status": "completed",
+      "intent_detected": "analysis",
+      "intent_confidence": 0.7,
+      "intent_match": true,
+      "steps_completed": "completed",
+      "tool_calls_count": 12,
+      "database_changes": false,
+      "errors": [],
+      "final_output_length": 1190,
+      "validation_passed": true,
+      "langsmith_trace_url": "https://smith.langchain.com/projects/CampaignAI-MultiAgent-Demo"
+    },
+    {
+      "scenario": {
+        "name": "Action Use Case - Campaign Creation",
+        "type": "action",
+        "instruction": "Create a new Facebook campaign for promoting eco-friendly water bottles to millennials aged 25-35. Budget should be $50 daily, objective is conversions, and run for 2 weeks starting tomorrow.",
+        "expected_intent": "action",
+        "description": "Pure action workflow - should route through intent \u2192 execute actions \u2192 report"
+      },
+      "workflow_id": "workflow_121eb56a",
+      "execution_time": 79.555177,
+      "status": "completed",
+      "intent_detected": "action",
+      "intent_confidence": 0.7,
+      "intent_match": true,
+      "steps_completed": "completed",
+      "tool_calls_count": 36,
+      "database_changes": false,
+      "errors": [],
+      "final_output_length": 27,
+      "validation_passed": false,
+      "langsmith_trace_url": "https://smith.langchain.com/projects/CampaignAI-MultiAgent-Demo"
+    },
+    {
+      "scenario": {
+        "name": "Hybrid Use Case - Optimization with Actions",
+        "type": "hybrid",
+        "instruction": "Find all Instagram campaigns with CTR below 1.5% and ROAS below 2.0, then pause the worst performers and increase budget by 20% for campaigns with good engagement but low reach.",
+        "expected_intent": "hybrid",
+        "description": "Hybrid workflow - should use full workflow with both analysis and actions"
+      },
+      "workflow_id": "workflow_f0f23337",
+      "execution_time": 91.295853,
+      "status": "completed",
+      "intent_detected": "action",
+      "intent_confidence": 0.7,
+      "intent_match": false,
+      "steps_completed": "completed",
+      "tool_calls_count": 37,
+      "database_changes": false,
+      "errors": [],
+      "final_output_length": 27,
+      "validation_passed": false,
+      "langsmith_trace_url": "https://smith.langchain.com/projects/CampaignAI-MultiAgent-Demo"
+    },
+    {
+      "scenario": {
+        "name": "Bulk Operations Use Case",
+        "type": "action",
+        "instruction": "Pause all campaigns across all platforms that have been running for more than 60 days with a ROAS below 1.5. Also update their status to include a note about performance review.",
+        "expected_intent": "action",
+        "description": "Complex bulk action workflow - tests bulk operations and multi-platform handling"
+      },
+      "workflow_id": "workflow_8fe7d331",
+      "execution_time": 77.299097,
+      "status": "completed",
+      "intent_detected": "action",
+      "intent_confidence": 0.7,
+      "intent_match": true,
+      "steps_completed": "completed",
+      "tool_calls_count": 33,
+      "database_changes": false,
+      "errors": [],
+      "final_output_length": 27,
+      "validation_passed": false,
+      "langsmith_trace_url": "https://smith.langchain.com/projects/CampaignAI-MultiAgent-Demo"
+    }
+  ]
+}
