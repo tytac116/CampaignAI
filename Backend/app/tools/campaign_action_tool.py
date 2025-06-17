@@ -162,6 +162,7 @@ def create_campaign(
         
         # Prepare campaign data
         campaign_data = {
+            "id": int(datetime.utcnow().timestamp() * 1000),  # Generate unique ID
             "campaign_id": campaign_id,
             "name": name,
             "platform": platform.lower(),

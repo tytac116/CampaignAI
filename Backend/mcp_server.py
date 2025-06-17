@@ -108,11 +108,12 @@ def mcp_analyze_campaign_performance(campaign_data: str) -> str:
         return f"Error analyzing campaign: {str(e)}"
 
 @mcp.tool()
-def mcp_generate_campaign_content(campaign_type: str, target_audience: str, platform: str) -> str:
+def mcp_generate_campaign_content(campaign_type: str, target_audience: str, platform: str, campaign_objective: str = "awareness") -> str:
     """Generate campaign content using AI."""
     try:
         result = generate_campaign_content.invoke({
-            "campaign_type": campaign_type,
+            "content_type": campaign_type,
+            "campaign_objective": campaign_objective,
             "target_audience": target_audience,
             "platform": platform
         })
@@ -128,8 +129,9 @@ def mcp_optimize_campaign_strategy(campaign_data: str, goals: str) -> str:
     """Optimize campaign strategy using AI."""
     try:
         result = optimize_campaign_strategy.invoke({
-            "campaign_data": campaign_data,
-            "goals": goals
+            "current_strategy": campaign_data,
+            "performance_data": campaign_data,
+            "optimization_goals": goals
         })
         logger.info(f"🧠 optimize_campaign_strategy called with data length: {len(campaign_data)}")
         logger.info(f"🧠 optimize_campaign_strategy output length: {len(result)}")
@@ -153,17 +155,48 @@ def mcp_general_marketing_assistant(query: str) -> str:
 # Vector Search Tools
 @mcp.tool()
 def mcp_search_campaign_data(query: str, limit: int = 5) -> str:
-    """Search campaign database using vector similarity."""
+    """Search campaign database using direct API access."""
     try:
-        result = search_campaign_data.invoke({
-            "query": query,
-            "limit": limit
-        })
-        logger.info(f"🔍 search_campaign_data called: {query[:50]}... (limit: {limit})")
-        logger.info(f"🔍 search_campaign_data output length: {len(result)}")
-        return result
+        import requests
+        
+        # Get all campaigns and search through them
+        response = requests.get("http://localhost:8000/api/campaigns", params={"limit": 100})
+        
+        if response.status_code == 200:
+            campaigns = response.json()
+            
+            # Search for campaigns matching the query
+            matching_campaigns = []
+            query_lower = query.lower()
+            
+            for campaign in campaigns:
+                # Search in campaign name, objective, and platform
+                if (query_lower in campaign['name'].lower() or 
+                    query_lower in campaign.get('objective', '').lower() or
+                    query_lower in campaign['platform'].lower()):
+                    matching_campaigns.append(campaign)
+            
+            if matching_campaigns:
+                result = f"Found {len(matching_campaigns)} campaigns matching '{query}':\n\n"
+                for campaign in matching_campaigns[:limit]:
+                    result += f"**{campaign['name']}** (ID: {campaign['campaign_id']})\n"
+                    result += f"- Platform: {campaign['platform'].title()}\n"
+                    result += f"- Status: {campaign['status'].title()}\n"
+                    result += f"- Budget: R{campaign['budget_amount']:,.2f}\n"
+                    result += f"- Current Spend: R{campaign['spend_amount']:,.2f}\n"
+                    result += f"- Remaining Budget: R{campaign['budget_amount'] - campaign['spend_amount']:,.2f}\n"
+                    result += f"- ROAS: {campaign['roas']:.2f}x\n"
+                    result += f"- CTR: {campaign['ctr']:.2f}%\n"
+                    result += f"- Objective: {campaign['objective']}\n\n"
+                return result
+            else:
+                return f"No campaigns found matching '{query}'. Try searching for different terms."
+                
+        else:
+            return f"Error accessing campaign data: {response.status_code}"
+            
     except Exception as e:
-        logger.error(f"❌ search_campaign_data failed: {str(e)}")
+        logger.error(f"❌ mcp_search_campaign_data failed: {str(e)}")
         return f"Error searching campaigns: {str(e)}"
 
 @mcp.tool()
@@ -326,24 +359,66 @@ def mcp_list_campaigns_by_criteria(
     max_roas: float = None,
     limit: int = 50
 ) -> str:
-    """List campaigns that match specific criteria."""
+    """List campaigns by criteria using direct API access."""
     try:
-        result = list_campaigns_by_criteria.invoke({
-            "platform": platform,
-            "status": status,
-            "min_budget": min_budget,
-            "max_budget": max_budget,
-            "min_ctr": min_ctr,
-            "max_ctr": max_ctr,
-            "min_roas": min_roas,
-            "max_roas": max_roas,
-            "limit": limit
-        })
-        logger.info(f"🎯 list_campaigns_by_criteria called with filters")
-        logger.info(f"🎯 list_campaigns_by_criteria output length: {len(result)}")
-        return result
+        import requests
+        
+        # Build query parameters
+        params = {"limit": limit}
+        if platform:
+            params["platform"] = platform
+        if status:
+            params["status"] = status
+            
+        # Call the working API endpoint
+        response = requests.get("http://localhost:8000/api/campaigns", params=params)
+        
+        if response.status_code == 200:
+            campaigns = response.json()
+            
+            # Apply additional filters
+            filtered_campaigns = []
+            for campaign in campaigns:
+                # Apply budget filters
+                if min_budget and campaign.get('budget_amount', 0) < min_budget:
+                    continue
+                if max_budget and campaign.get('budget_amount', 0) > max_budget:
+                    continue
+                    
+                # Apply CTR filters
+                if min_ctr and campaign.get('ctr', 0) < min_ctr:
+                    continue
+                if max_ctr and campaign.get('ctr', 0) > max_ctr:
+                    continue
+                    
+                # Apply ROAS filters
+                if min_roas and campaign.get('roas', 0) < min_roas:
+                    continue
+                if max_roas and campaign.get('roas', 0) > max_roas:
+                    continue
+                    
+                filtered_campaigns.append(campaign)
+            
+            # Format results
+            if filtered_campaigns:
+                result = f"Found {len(filtered_campaigns)} campaigns matching criteria:\n\n"
+                for campaign in filtered_campaigns[:limit]:
+                    result += f"**{campaign['name']}** (ID: {campaign['campaign_id']})\n"
+                    result += f"- Platform: {campaign['platform'].title()}\n"
+                    result += f"- Status: {campaign['status'].title()}\n"
+                    result += f"- Budget: R{campaign['budget_amount']:,.2f}\n"
+                    result += f"- Spend: R{campaign['spend_amount']:,.2f}\n"
+                    result += f"- ROAS: {campaign['roas']:.2f}x\n"
+                    result += f"- CTR: {campaign['ctr']:.2f}%\n\n"
+                return result
+            else:
+                return f"No campaigns found matching the specified criteria."
+                
+        else:
+            return f"Error accessing campaign data: {response.status_code}"
+            
     except Exception as e:
-        logger.error(f"❌ list_campaigns_by_criteria failed: {str(e)}")
+        logger.error(f"❌ mcp_list_campaigns_by_criteria failed: {str(e)}")
         return f"Error listing campaigns: {str(e)}"
 
 # Search Tools

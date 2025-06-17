@@ -9,6 +9,8 @@ import os
 import sys
 import asyncio
 import logging
+import subprocess
+import threading
 from typing import Dict, Any, List, Optional
 from datetime import datetime
 import uuid
@@ -30,6 +32,10 @@ from app.agents import (
     create_campaign_graph
 )
 
+# Import direct database access
+from app.services.supabase_service import supabase_service
+from app.tools.campaign_action_tool import list_campaigns_by_criteria
+
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -37,7 +43,7 @@ logger = logging.getLogger(__name__)
 # Initialize FastAPI app
 app = FastAPI(
     title="Campaign AI Application",
-    description="MCP-integrated campaign optimization platform",
+    description="MCP-integrated campaign optimization platform with direct data access",
     version="1.0.0"
 )
 
@@ -54,8 +60,9 @@ app.add_middleware(
 campaign_agent = None
 coordinator_agent = None
 workflow_graph = None
+mcp_server_process = None
 
-# Request/Response models
+# Request/Response models for MCP operations
 class OptimizationRequest(BaseModel):
     instruction: str
     campaign_context: Optional[Dict[str, Any]] = None
@@ -84,14 +91,74 @@ class WorkflowResponse(BaseModel):
     results: Dict[str, Any]
     execution_time_seconds: float
 
+# Direct data access models
+class CampaignData(BaseModel):
+    campaign_id: str
+    name: str
+    platform: str
+    status: str
+    objective: str
+    budget_amount: float
+    spend_amount: float
+    remaining_budget: float
+    impressions: int
+    clicks: int
+    conversions: int
+    revenue: float
+    ctr: float
+    cpc: float
+    cpm: float
+    cpa: float
+    roas: float
+    start_date: str
+    end_date: Optional[str]
+    created_at: str
+    updated_at: str
+
+class DashboardStats(BaseModel):
+    total_campaigns: int
+    active_campaigns: int
+    total_spend: float
+    total_revenue: float
+    average_roas: float
+    average_ctr: float
+    average_cpc: float
+    total_clicks: int
+    total_impressions: int
+    total_conversions: int
+
+def start_mcp_server():
+    """Start the MCP server in a separate process."""
+    global mcp_server_process
+    try:
+        mcp_server_path = os.path.join(backend_dir, "mcp_server.py")
+        logger.info(f"🚀 Starting MCP server: {mcp_server_path}")
+        
+        mcp_server_process = subprocess.Popen(
+            [sys.executable, mcp_server_path],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True
+        )
+        
+        # Give the server a moment to start
+        asyncio.sleep(2)
+        logger.info("✅ MCP server started successfully")
+        
+    except Exception as e:
+        logger.error(f"❌ Failed to start MCP server: {str(e)}")
+
 @app.on_event("startup")
 async def startup_event():
-    """Initialize MCP-integrated components on startup."""
+    """Initialize MCP-integrated components and start MCP server on startup."""
     global campaign_agent, coordinator_agent, workflow_graph
     
     logger.info("🚀 Starting Campaign AI Application...")
     
     try:
+        # Start MCP server first
+        await asyncio.get_event_loop().run_in_executor(None, start_mcp_server)
+        
         # Initialize campaign agent
         campaign_agent = get_campaign_agent()
         await campaign_agent.initialize_mcp_connection()
@@ -112,20 +179,162 @@ async def startup_event():
         logger.error(f"❌ Startup failed: {str(e)}")
         raise
 
+@app.on_event("shutdown")
+async def shutdown_event():
+    """Clean shutdown of MCP server."""
+    global mcp_server_process
+    if mcp_server_process:
+        logger.info("🛑 Shutting down MCP server...")
+        mcp_server_process.terminate()
+        mcp_server_process.wait()
+        logger.info("✅ MCP server shut down")
+
+# =============================================================================
+# DIRECT DATA ACCESS ENDPOINTS (for frontend display)
+# =============================================================================
+
+@app.get("/api/campaigns", response_model=List[CampaignData])
+async def get_campaigns(
+    platform: Optional[str] = None,
+    status: Optional[str] = None,
+    limit: int = 50
+):
+    """Get campaigns directly from database for frontend display."""
+    try:
+        client = supabase_service.get_client()
+        if not client:
+            raise HTTPException(status_code=500, detail="Database connection failed")
+        
+        # Build query
+        query = client.table("campaigns").select("*")
+        
+        if platform:
+            query = query.eq("platform", platform.lower())
+        if status:
+            query = query.eq("status", status.lower())
+            
+        query = query.limit(limit).order("created_at", desc=True)
+        
+        result = query.execute()
+        
+        if result.data:
+            campaigns = []
+            for row in result.data:
+                campaigns.append(CampaignData(**row))
+            return campaigns
+        else:
+            return []
+            
+    except Exception as e:
+        logger.error(f"❌ Failed to get campaigns: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/dashboard/stats", response_model=DashboardStats)
+async def get_dashboard_stats():
+    """Get dashboard statistics directly from database."""
+    try:
+        client = supabase_service.get_client()
+        if not client:
+            raise HTTPException(status_code=500, detail="Database connection failed")
+        
+        # Get all campaigns for calculations
+        result = client.table("campaigns").select("*").execute()
+        
+        if not result.data:
+            return DashboardStats(
+                total_campaigns=0,
+                active_campaigns=0,
+                total_spend=0.0,
+                total_revenue=0.0,
+                average_roas=0.0,
+                average_ctr=0.0,
+                average_cpc=0.0,
+                total_clicks=0,
+                total_impressions=0,
+                total_conversions=0
+            )
+        
+        campaigns = result.data
+        total_campaigns = len(campaigns)
+        active_campaigns = len([c for c in campaigns if c.get('status') == 'active'])
+        
+        total_spend = sum(c.get('spend_amount', 0) for c in campaigns)
+        total_revenue = sum(c.get('revenue', 0) for c in campaigns)
+        total_clicks = sum(c.get('clicks', 0) for c in campaigns)
+        total_impressions = sum(c.get('impressions', 0) for c in campaigns)
+        total_conversions = sum(c.get('conversions', 0) for c in campaigns)
+        
+        # Calculate averages
+        active_campaigns_data = [c for c in campaigns if c.get('status') == 'active']
+        if active_campaigns_data:
+            average_roas = sum(c.get('roas', 0) for c in active_campaigns_data) / len(active_campaigns_data)
+            average_ctr = sum(c.get('ctr', 0) for c in active_campaigns_data) / len(active_campaigns_data)
+            average_cpc = sum(c.get('cpc', 0) for c in active_campaigns_data) / len(active_campaigns_data)
+        else:
+            average_roas = 0.0
+            average_ctr = 0.0
+            average_cpc = 0.0
+        
+        return DashboardStats(
+            total_campaigns=total_campaigns,
+            active_campaigns=active_campaigns,
+            total_spend=total_spend,
+            total_revenue=total_revenue,
+            average_roas=average_roas,
+            average_ctr=average_ctr,
+            average_cpc=average_cpc,
+            total_clicks=total_clicks,
+            total_impressions=total_impressions,
+            total_conversions=total_conversions
+        )
+        
+    except Exception as e:
+        logger.error(f"❌ Failed to get dashboard stats: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/campaigns/{campaign_id}", response_model=CampaignData)
+async def get_campaign_by_id(campaign_id: str):
+    """Get specific campaign by ID directly from database."""
+    try:
+        client = supabase_service.get_client()
+        if not client:
+            raise HTTPException(status_code=500, detail="Database connection failed")
+        
+        result = client.table("campaigns").select("*").eq("campaign_id", campaign_id).execute()
+        
+        if result.data and len(result.data) > 0:
+            return CampaignData(**result.data[0])
+        else:
+            raise HTTPException(status_code=404, detail="Campaign not found")
+            
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"❌ Failed to get campaign {campaign_id}: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+# =============================================================================
+# MCP-INTEGRATED ENDPOINTS (for agentic operations)
+# =============================================================================
+
 @app.get("/")
 async def root():
     """Root endpoint with application info."""
     return {
         "name": "Campaign AI Application",
         "version": "1.0.0",
-        "description": "MCP-integrated campaign optimization platform",
+        "description": "MCP-integrated campaign optimization platform with direct data access",
         "status": "running",
         "endpoints": {
+            "campaigns": "/api/campaigns",
+            "dashboard_stats": "/api/dashboard/stats",
+            "campaign_detail": "/api/campaigns/{campaign_id}",
             "optimize": "/optimize",
             "workflow": "/workflow",
             "workflow_status": "/workflow/{workflow_id}",
             "health": "/health",
-            "tools": "/tools"
+            "tools": "/tools",
+            "mcp": "/api/mcp"
         }
     }
 
@@ -270,6 +479,72 @@ async def list_available_tools():
         logger.error(f"❌ Failed to list tools: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
+# MCP Tool Call Request/Response models
+class MCPToolRequest(BaseModel):
+    tool: str
+    params: Dict[str, Any] = {}
+
+class MCPToolResponse(BaseModel):
+    success: bool
+    data: Any
+    error: Optional[str] = None
+    workflowId: Optional[str] = None
+    langsmithTrace: Optional[str] = None
+
+@app.post("/api/mcp", response_model=MCPToolResponse)
+async def call_mcp_tool(request: MCPToolRequest):
+    """
+    Call MCP tools directly - this endpoint matches what the frontend expects.
+    
+    This endpoint provides direct access to MCP tools for the frontend,
+    allowing it to call individual tools like mcp_list_campaigns_by_criteria.
+    """
+    try:
+        logger.info(f"🔧 MCP Tool call: {request.tool} with params: {request.params}")
+        
+        # Ensure campaign agent is initialized
+        if not campaign_agent or not campaign_agent.mcp_tools:
+            await campaign_agent.initialize_mcp_connection()
+        
+        # Find the requested tool
+        tool_to_call = None
+        for tool in campaign_agent.mcp_tools:
+            if tool.name == request.tool:
+                tool_to_call = tool
+                break
+        
+        if not tool_to_call:
+            return MCPToolResponse(
+                success=False,
+                data=None,
+                error=f"Tool '{request.tool}' not found. Available tools: {[t.name for t in campaign_agent.mcp_tools]}"
+            )
+        
+        # Call the tool
+        result = await tool_to_call.ainvoke(request.params)
+        
+        # Generate workflow ID for tracking
+        workflow_id = f"mcp_{request.tool}_{uuid.uuid4().hex[:8]}"
+        
+        logger.info(f"✅ MCP Tool '{request.tool}' executed successfully")
+        
+        return MCPToolResponse(
+            success=True,
+            data=result,
+            workflowId=workflow_id,
+            langsmithTrace=f"https://smith.langchain.com/trace/{workflow_id}"
+        )
+        
+    except Exception as e:
+        logger.error(f"❌ MCP Tool call failed: {str(e)}")
+        return MCPToolResponse(
+            success=False,
+            data=None,
+            error=str(e)
+        )
+
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000) 
+    import os
+    port = int(os.getenv("PORT", 8000))
+    uvicorn.run(app, host="0.0.0.0", port=port)

@@ -1,0 +1,167 @@
+{
+  "timestamp": "2025-06-17T09:22:50.991971",
+  "tests_run": 14,
+  "tests_passed": 12,
+  "tests_failed": 2,
+  "detailed_results": {
+    "mcp_server_connection": {
+      "success": true,
+      "details": {
+        "tools_available": 18,
+        "tool_names": [
+          "get_server_info",
+          "test_connection",
+          "mcp_analyze_campaign_performance",
+          "mcp_generate_campaign_content",
+          "mcp_optimize_campaign_strategy",
+          "mcp_general_marketing_assistant",
+          "mcp_search_campaign_data",
+          "mcp_analyze_campaign_trends",
+          "mcp_get_facebook_campaigns",
+          "mcp_get_facebook_campaign_details",
+          "mcp_get_instagram_campaigns",
+          "mcp_get_instagram_campaign_details",
+          "mcp_create_campaign",
+          "mcp_update_campaign",
+          "mcp_bulk_campaign_operation",
+          "mcp_list_campaigns_by_criteria",
+          "mcp_tavily_search",
+          "mcp_wikipedia_search"
+        ]
+      },
+      "error": null,
+      "timestamp": "2025-06-17T09:22:57.055879"
+    },
+    "campaign_agent": {
+      "success": true,
+      "details": {
+        "tool_calls": 3,
+        "workflow_id": "campaign_workflow_d4a47f92"
+      },
+      "error": null,
+      "timestamp": "2025-06-17T09:23:17.447751"
+    },
+    "campaign_action_agent_intent": {
+      "success": true,
+      "details": {
+        "intent_type": "action",
+        "confidence": 0.7
+      },
+      "error": null,
+      "timestamp": "2025-06-17T09:23:21.816847"
+    },
+    "campaign_action_agent_workflow": {
+      "success": true,
+      "details": {
+        "workflow_id": "action_workflow_158e531d"
+      },
+      "error": null,
+      "timestamp": "2025-06-17T09:23:36.557772"
+    },
+    "coordinator_agent": {
+      "success": true,
+      "details": {
+        "status": "failed",
+        "phases": 0
+      },
+      "error": null,
+      "timestamp": "2025-06-17T09:23:56.151719"
+    },
+    "monitor_node": {
+      "success": false,
+      "details": {
+        "completed_agents": 0
+      },
+      "error": null,
+      "timestamp": "2025-06-17T09:24:17.911572"
+    },
+    "analysis_node": {
+      "success": false,
+      "details": {
+        "completed_agents": 1
+      },
+      "error": null,
+      "timestamp": "2025-06-17T09:24:22.894172"
+    },
+    "simple_workflow": {
+      "success": true,
+      "details": {
+        "status": "completed",
+        "tool_calls": 5,
+        "final_output_length": 6473
+      },
+      "error": null,
+      "timestamp": "2025-06-17T09:25:42.922119"
+    },
+    "workflow_graph": {
+      "success": true,
+      "details": {
+        "status": "completed",
+        "current_step": "validated",
+        "tool_calls": 5,
+        "errors": 0
+      },
+      "error": null,
+      "timestamp": "2025-06-17T09:27:13.058942"
+    },
+    "intent_analysis_1": {
+      "success": true,
+      "details": {
+        "instruction": "Show me my Facebook campaign performance",
+        "intent_found": true,
+        "current_step": "intent_analyzed",
+        "errors": []
+      },
+      "error": null,
+      "timestamp": "2025-06-17T09:27:16.015967"
+    },
+    "intent_analysis_2": {
+      "success": true,
+      "details": {
+        "instruction": "Create a new Instagram campaign for lead generation",
+        "intent_found": true,
+        "current_step": "intent_analyzed",
+        "errors": []
+      },
+      "error": null,
+      "timestamp": "2025-06-17T09:27:19.152450"
+    },
+    "intent_analysis_3": {
+      "success": true,
+      "details": {
+        "instruction": "Optimize my current marketing campaigns",
+        "intent_found": true,
+        "current_step": "intent_analyzed",
+        "errors": []
+      },
+      "error": null,
+      "timestamp": "2025-06-17T09:27:22.253198"
+    },
+    "intent_analysis_4": {
+      "success": true,
+      "details": {
+        "instruction": "Generate ad copy for my product launch",
+        "intent_found": true,
+        "current_step": "intent_analyzed",
+        "errors": []
+      },
+      "error": null,
+      "timestamp": "2025-06-17T09:27:27.305357"
+    },
+    "intent_analysis_5": {
+      "success": true,
+      "details": {
+        "instruction": "Analyze which campaigns are performing best",
+        "intent_found": true,
+        "current_step": "intent_analyzed",
+        "errors": []
+      },
+      "error": null,
+      "timestamp": "2025-06-17T09:27:30.466432"
+    }
+  },
+  "errors": [
+    "monitor_node: None",
+    "analysis_node: None"
+  ]
+}
